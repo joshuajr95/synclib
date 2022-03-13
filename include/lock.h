@@ -7,14 +7,14 @@
 
 typedef struct lock_t
 {
-    volatile int held = 0;
+    volatile int held; // = 0;
 
 } lock_t;
 
 
+int init(lock_t* lock);
 
 int acquire(lock_t* lock);
-
 
 int release(lock_t* lock);
 
