@@ -9,10 +9,13 @@ LIBDIR = lib
 
 FILES = lock #barrier semaphore
 SFILES = $(patsubst %, $(SDIR)/%.c, $(FILES))
-LIBFILE = synclib
+LIBFILE = libsync
 
 DETECTED_OS = 
 OUTFILE = 
+
+DYLIB_DIR = 
+INSTALL_PATH = 
 
 
 ifeq ($(OS), Windows_NT)
@@ -38,12 +41,16 @@ ifeq ($(DETECTED_OS), WINDOWS)
 
 else ifeq ($(DETECTED_OS), Linux)
 	OUTFILE = $(patsubst %, $(LIBDIR)/%.so, $(LIBFILE))
+	DYLIB_DIR = /usr/local/lib
+	INSTALL_PATH = $(patsubst %, $(DYLIB_DIR)/%.so, $(LIBFILE))
 
 else ifeq ($(DETECTED_OS), Darwin)
 	OUTFILE = $(patsubst %, $(LIBDIR)/%.dylib, $(LIBFILE))
+	DYLIB_DIR = /usr/local/lib
+	INSTALL_PATH = $(patsubst %, $(DYLIB_DIR)/%.dylib, $(LIBFILE))
 
 else
-		
+	
 endif
 
 
@@ -52,6 +59,24 @@ default: $(SFILES)
 
 	$(info DETECTED_OS is ${DETECTED_OS})
 
+	if [ ! -d $(LIBDIR) ]; then mkdir $(LIBDIR); fi
+
 	$(CC) $(CFLAGS) -I $(INCLUDEDIR) $^ -o $(OUTFILE)
 
 
+
+.PHONY: clean install uninstall
+
+
+clean:
+	rm -rf $(LIBDIR)
+
+
+install:
+
+	cp $(OUTFILE) $(INSTALL_PATH)
+
+
+uninstall:
+
+	if [ -e $(INSTALL_PATH) ]; then rm $(INSTALL_PATH); fi

@@ -6,7 +6,6 @@
 #endif
 
 #include <unistd.h>
-
 #include <lock.h>
 
 
@@ -21,19 +20,31 @@ int init(lock_t* lock)
 
 int acquire(lock_t* lock)
 {
-    int isHeld = lock->held;
+    volatile int* isHeld = &(lock->held);
+    
     //pid_t threadid = gettid();
+
 
 
 // section for inline assembly containing acquire code for x64 architectures
 #if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
 
+    /*
     __asm__ __volatile__("loop:\n\t");
     __asm__ __volatile__("movq (%%rdi), %%rax\n\t" : : "r" (isHeld): "%rax", "%rcx", "%rdx");
-    __asm__ __volatile__("movq $0, %rcx\n\t"
-                "movq $1, %rdx\n\t"
-                "lock cmpxchgq %rdx, %rcx\n\t");
-    __asm__ ("jnz loop\n\t");
+    __asm__ __volatile__("xor %rcx, %rcx\n\t");
+    __asm__ __volatile__("mov $1, %rdx\n\t");
+    __asm__ __volatile__("lock cmpxchg %rdx, %rcx\n\t");
+    __asm__ __volatile__("jnz loop\n\t");
+    */
+
+    __asm__ __volatile__("loop:\n\t");
+    __asm__ __volatile__("movq $0, %%rax\n\t" : : : "%rax");
+    __asm__ __volatile__("movq $1, %%rcx\n\t" : : : "%rcx");
+    __asm__ __volatile__("lock cmpxchgq %%rcx, (%%rdi)\n\t" : : "m" (isHeld));
+    __asm__ __volatile__("jnz loop\n\t");
+    
+
     /*__asm__ goto ("jnz loopb\n\t"
                 :
                 : 
@@ -55,6 +66,14 @@ int acquire(lock_t* lock)
 
 
 #endif
+
+    return 0;
+}
+
+
+int release(lock_t* lock)
+{
+    lock->held = 0;
 
     return 0;
 }
