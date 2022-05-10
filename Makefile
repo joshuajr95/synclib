@@ -1,13 +1,16 @@
 
 CC=gcc
-CFLAGS= -g -Wall -shared -fPIC
+
+# do not compile with debugging info for production code since it facilitates reverse-engineering
+# i.e. -g is bad for production code
+CFLAGS= -Wall -shared -fPIC
 
 SDIR = src
 ODIR = obj
 INCLUDEDIR = include
 LIBDIR = lib
 
-FILES = lock #barrier semaphore
+FILES = lock barrier semaphore
 SFILES = $(patsubst %, $(SDIR)/%.c, $(FILES))
 LIBFILE = libsync
 
@@ -16,6 +19,8 @@ OUTFILE =
 
 DYLIB_DIR = 
 INSTALL_PATH = 
+
+SYSTEM_INCLUDE_DIR = 
 
 
 ifeq ($(OS), Windows_NT)
@@ -43,11 +48,13 @@ else ifeq ($(DETECTED_OS), Linux)
 	OUTFILE = $(patsubst %, $(LIBDIR)/%.so, $(LIBFILE))
 	DYLIB_DIR = /usr/local/lib
 	INSTALL_PATH = $(patsubst %, $(DYLIB_DIR)/%.so, $(LIBFILE))
+	SYSTEM_INCLUDE_DIR = /usr/local/include
 
 else ifeq ($(DETECTED_OS), Darwin)
 	OUTFILE = $(patsubst %, $(LIBDIR)/%.dylib, $(LIBFILE))
 	DYLIB_DIR = /usr/local/lib
 	INSTALL_PATH = $(patsubst %, $(DYLIB_DIR)/%.dylib, $(LIBFILE))
+	SYSTEM_INCLUDE_DIR = /usr/local/include
 
 else
 	
@@ -75,6 +82,10 @@ clean:
 install:
 
 	cp $(OUTFILE) $(INSTALL_PATH)
+	
+	for f in $(FILES); do \
+		cp $(INCLUDEDIR)/$(f).h $(SYSTEM_INCLUDE_DIR)/$(f).h ; \
+	done
 
 
 uninstall:

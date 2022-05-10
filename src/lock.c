@@ -29,26 +29,12 @@ int acquire(lock_t* lock)
 // section for inline assembly containing acquire code for x64 architectures
 #if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
 
-    /*
-    __asm__ __volatile__("loop:\n\t");
-    __asm__ __volatile__("movq (%%rdi), %%rax\n\t" : : "r" (isHeld): "%rax", "%rcx", "%rdx");
-    __asm__ __volatile__("xor %rcx, %rcx\n\t");
-    __asm__ __volatile__("mov $1, %rdx\n\t");
-    __asm__ __volatile__("lock cmpxchg %rdx, %rcx\n\t");
-    __asm__ __volatile__("jnz loop\n\t");
-    */
-
     __asm__ __volatile__("loop:\n\t");
     __asm__ __volatile__("movq $0, %%rax\n\t" : : : "%rax");
     __asm__ __volatile__("movq $1, %%rcx\n\t" : : : "%rcx");
     __asm__ __volatile__("lock cmpxchgq %%rcx, (%%rdi)\n\t" : : "m" (isHeld));
     __asm__ __volatile__("jnz loop\n\t");
-    
 
-    /*__asm__ goto ("jnz loopb\n\t"
-                :
-                : 
-                : :loop);*/
 
 // section for inline assembly containing acquire code for x86 architectures
 #elif defined(i386) || defined(__i386) || defined(__i386__)

@@ -1,4 +1,10 @@
-
+/*
+ * File: lock.h
+ * Author: Joshua Jacobs-Rebhun
+ * Date: March 16, 2022
+ * 
+ * Header for the spinlock and any others.
+ */
 
 #ifndef LOCK_H
 #define LOCK_H
