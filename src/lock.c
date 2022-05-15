@@ -39,7 +39,11 @@ int acquire(lock_t* lock)
 // section for inline assembly containing acquire code for x86 architectures
 #elif defined(i386) || defined(__i386) || defined(__i386__)
 
-
+    __asm__ __volatile__("loop:\n\t");
+    __asm__ __volatile__("movl $0, %%eax\n\t" : : : "%eax");
+    __asm__ __volatile__("movl $1, %%ecx\n\t" : : : "%ecx");
+    __asm__ __volatile__("lock cmpxchgl %%ecx, (%%edi)\n\t" : : "m" (isHeld));
+    __asm__ __volatile__("jnz loop\n\t");
 
 // aquire code for ARM 32-bit architectures
 #elif defined(__arm__)
