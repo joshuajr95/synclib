@@ -7,7 +7,9 @@
 #ifndef BARRIER_H
 #define BARRIER_H
 
+#include <stdbool.h>
 #include <lock.h>
+
 
 /*
  * Struct that implements a sense-reversal barrier

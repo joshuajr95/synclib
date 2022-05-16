@@ -13,6 +13,8 @@ int barrier_init(barrier_t* barrier, int numThreads, int start_count)
     barrier->sense = false;
 
     init(&barrier->countLock);
+
+    return 0;
 }
 
 
@@ -37,4 +39,6 @@ int barrier_wait(barrier_t* barrier)
         while(barrier->sense == prev_sense);
     }
 
+
+    return 0;
 }
