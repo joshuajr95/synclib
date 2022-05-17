@@ -3,7 +3,8 @@ CC=gcc
 
 # do not compile with debugging info for production code since it facilitates reverse-engineering
 # i.e. -g is bad for production code
-CFLAGS= -Wall -shared -fPIC
+CFLAGS= -Wall --verbose
+LFLAGS= 
 
 SDIR = src
 ODIR = obj
@@ -12,6 +13,7 @@ LIBDIR = lib
 
 FILES = lock barrier semaphore
 SFILES = $(patsubst %, $(SDIR)/%.c, $(FILES))
+OFILES = $(patsubst %, $(ODIR)/%.o, $(FILES))
 LIBFILE = libsync
 
 DETECTED_OS = 
@@ -33,9 +35,11 @@ else
 
 	ifeq ($(DETECTED_OS), Linux)
 		CFLAGS += -D LINUX
+		LFLAGS += -shared
 
 	else ifeq ($(DETECTED_OS), Darwin)
 		CFLAGS += -D OSX
+		LFLAGS += -dynamiclib
 	endif
 
 endif
@@ -62,32 +66,54 @@ endif
 
 
 
-default: $(SFILES)
+default: $(OFILES)
 
 	$(info DETECTED_OS is ${DETECTED_OS})
 
 	if [ ! -d $(LIBDIR) ]; then mkdir $(LIBDIR); fi
 
-	$(CC) $(CFLAGS) -I $(INCLUDEDIR) $^ -o $(OUTFILE)
+	$(CC) $(CFLAGS) $^ $(LFLAGS) -o $(OUTFILE)
 
 
+$(ODIR)/%.o: $(SDIR)/%.c
+
+	if [ ! -d $(ODIR) ]; then mkdir $(ODIR); fi
+
+	$(CC) -c $(CFLAGS) -I $(INCLUDEDIR) -fPIC $^ -o $@
 
 .PHONY: clean install uninstall
 
 
 clean:
 	rm -rf $(LIBDIR)
+	rm -rf $(ODIR)
 
 
 install:
 
 	cp $(OUTFILE) $(INSTALL_PATH)
 	
-	for f in $(FILES); do \
-		cp $(INCLUDEDIR)/$(f).h $(SYSTEM_INCLUDE_DIR)/$(f).h ; \
+	for f in ${FILES}; do \
+		cp ${INCLUDEDIR}/$$f.h ${SYSTEM_INCLUDE_DIR}/$$f.h ; \
 	done
+
+#	export LIBRARY_PATH=$$LIBRARY_PATH:$$DYLIB_DIR
+
+#	echo "export LIBRARY_PATH=$$LIBRARY_PATH:${DYLIB_DIR}" >> ~/.bashrc
+#	echo "export LIBRARY_PATH=$$LIBRARY_PATH:${DYLIB_DIR}" >> ~/.bash_profile
+
+#	if [ -e "~/.zshrc" ]; then \
+		echo "export LIBRARY_PATH=$$LIBRARY_PATH:$$DYLIB_DIR" >> ~/.zshrc; \
+		echo "export LIBRARY_PATH=$$LIBRARY_PATH:$$DYLIB_DIR" >> ~/.zprofile; \
+	fi
+
+	
 
 
 uninstall:
 
 	if [ -e $(INSTALL_PATH) ]; then rm $(INSTALL_PATH); fi
+
+	for f in ${FILES}; do \
+		if [ -e ${SYSTEM_INCLUDE_DIR}/$$f.h ]; then rm ${SYSTEM_INCLUDE_DIR}/$$f.h; fi; \
+	done
