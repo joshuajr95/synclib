@@ -1,5 +1,5 @@
 # synclib
-This is a simple thread synchronization library. It contains code for a simple spinlock, a sense-reversing barrer, and a semaphore. It cannot do anything very advanced so don't even try.
+This is a simple thread synchronization library. It contains code for a simple spinlock, a sense-reversing barrier, and a semaphore. It cannot do anything very advanced so don't even try.
 
 
 __This library does not work on Windows.__
